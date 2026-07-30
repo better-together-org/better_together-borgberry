@@ -22,6 +22,17 @@ module BetterTogether
       # frozen). Test-only config belongs in the test suite's own setup, not
       # engine boot code that also runs in production.
 
+      # Standard Rails engine migration-path registration. Without this, a host
+      # app's `rails db:migrate` never discovers this gem's db/migrate/ files —
+      # Rails does not do this automatically just because the engine is bundled.
+      initializer :append_migrations do |app|
+        unless app.root.to_s.match?(root.to_s)
+          config.paths['db/migrate'].expanded.each do |expanded_path|
+            app.config.paths['db/migrate'] << expanded_path
+          end
+        end
+      end
+
       initializer 'better_together_borgberry.model_decorations' do
         BetterTogether::Borgberry::ModelRegistry.register_default_decorations!
 
